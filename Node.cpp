@@ -120,9 +120,11 @@ void Node::evaluatePossibilities(int newChoice) {
   int val;
   int score[K_];
   bool flag;
+  // Initialize score
+  for (int i=0; i<K_; i++) {
+    score[i] = 0;
+  }
   while (IND[0] < K_) {
-    // Initialize score
-    score[IND[0]] = 0;
     // Go to node specified by IND
     for (int j=0; j<searchLevels; j++) {
       searchNode = searchNode->nodes_[IND[j]];
@@ -131,21 +133,14 @@ void Node::evaluatePossibilities(int newChoice) {
     val = searchNode->N_;
     score[IND[0]] += abs(sum_-val);
     // Update IND
-    flag = false;
     IND[id]++;
-    while (flag == false) {
-      if ((IND[id] == K_) && (id != 0)) {
-	IND[id] = 0;
-	IND[id-1]++;
-	id--;
+    for (int i=searchLevels-1; i>-1; i--) {
+      if ((IND[i] == K_) && (i != 0)) {
+	IND[i] = 0;
+	IND[i-1]++;
       }
-      else if ((IND[id] != K_) && (id == 0)) {
-	flag = true;
-	id = searchLevels-1;
-      }
-      else if ((IND[id] == K_) && (id == 0)) {
-	flag = true;
-	id = searchLevels-1;
+      else if ((IND[i] == K_) && (i != 0)) {
+	break;
       }
     }
 
