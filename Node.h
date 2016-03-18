@@ -12,16 +12,16 @@ class Node {
   int getNPts();
   int getLevel();
   void calcTree(int depth);
-  void evaluatePossibilities(int newChoice);
+  int evaluatePossibilities(int newChoice);
 
   // These should really be private...
-  int N_;                // Node value
-  int K_;                // Number of leaves
-  int level_;            // Node level in tree heirarchy
-  int sum_;              // Objective (desired) sum
-  vector<int> history_;  // History of choices made
-  int currentLevel_;     // Current level
-  int totalLevels_;      // Total levels of entire tree
+  int N_;                     // Node value
+  int K_;                     // Number of leaves
+  int level_;                 // Node level in tree heirarchy
+  int sum_;                   // Objective (desired) sum
+  std::vector<int> history_;  // History of choices made
+  int currentLevel_;          // Current level
+  int totalLevels_;           // Total levels of entire tree
 };
 
 

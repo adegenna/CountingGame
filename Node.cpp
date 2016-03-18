@@ -16,7 +16,7 @@ Node::Node(int N, int K, int sum, int level) {
   nodes_ = new Node*[K_];
   for (int i=0; i<K_; i++)
     nodes_[i] = NULL;
-  currentLevel = 0;
+  currentLevel_ = 0;
 }
 
 Node::~Node() {
@@ -55,11 +55,11 @@ void Node::calcTree(int depth) {
   int numNext = 0;
   int sizeCurrent = 1;
   // Print to file
-  FILE* fout = fopen("Tree.out","w");
-  fprintf(fout,"TREE CALCULATION: LEAVES = %d, LEVELS = %d\n\n\n",K_,level_);
-  for (int i=0; i<K_; i++)
-    fprintf(fout,"LEVEL = %d\tVALUE = %d\n",nodes_[i]->level_,nodes_[i]->N_);
-  fprintf(fout,"\n");
+  //FILE* fout = fopen("Tree.out","w");
+  //fprintf(fout,"TREE CALCULATION: LEAVES = %d, LEVELS = %d\n\n\n",K_,level_);
+  //for (int i=0; i<K_; i++)
+  //  fprintf(fout,"LEVEL = %d\tVALUE = %d\n",nodes_[i]->level_,nodes_[i]->N_);
+  //fprintf(fout,"\n");
   // Recursive tree creation
   for (int k=0; k<depth-1; k++) {
     for (int i=0; i<sizeCurrent; i++) {
@@ -67,31 +67,30 @@ void Node::calcTree(int depth) {
       for (int j=0; j<K_; j++) {
 	child = current[i]->nodes_[j];
 	child->setNodes();
-	for (int jj=0; jj<K_; jj++)
-	  fprintf(fout,"LEVEL = %d\tVALUE = %d\n",child->nodes_[jj]->level_,child->nodes_[jj]->N_);
+	//for (int jj=0; jj<K_; jj++)
+	  //fprintf(fout,"LEVEL = %d\tVALUE = %d\n",child->nodes_[jj]->level_,child->nodes_[jj]->N_);
         // Track next level of nodes
 	next.push_back(child);
 	numNext++;
       }
     }
-    fprintf(fout,"\n");
+    //fprintf(fout,"\n");
     // Reset current nodes for next level iteration
     current.swap(next);
     next.clear();
     sizeCurrent = numNext;
     numNext = 0;
   }
-  fclose(fout);
+  //fclose(fout);
 }
 
-void Node::evaluatePossibilities(int newChoice) {
+int Node::evaluatePossibilities(int newChoice) {
   // Function to evaluate possible tree of choices and pick the choice
   // which has the greatest probability of future success
 
   Node* currentNode = this;
   // Go to current node of decision tree
-  if (currentLevel != 0) {
-    Node* currentNode = this;
+  if (currentLevel_ != 0) {
     for (int i=0; i<currentLevel_; i++) {
       // Prune through history of tree to current node
       currentNode = currentNode->nodes_[history_[i]];
@@ -106,13 +105,14 @@ void Node::evaluatePossibilities(int newChoice) {
       break;
     }
   }
-  history.push_back(newChoiceInd);
+  printf("User choice = %d\n",currentNode->nodes_[newChoiceInd]->N_);
+  history_.push_back(newChoiceInd);
   currentNode = currentNode->nodes_[newChoiceInd];
   currentLevel_ += 1;
   // Evaluate subtree of possible choices and find optimal choice
-  int searchLevels = totalLevels_-currentLevel;
+  int searchLevels = totalLevels_-currentLevel_;
   int IND[searchLevels];
-  Node* searchNode = currentNode;
+  Node* searchNode;
   for (int i=0; i<searchLevels; i++) {
     IND[i] = 0;
   }
@@ -126,6 +126,7 @@ void Node::evaluatePossibilities(int newChoice) {
   }
   while (IND[0] < K_) {
     // Go to node specified by IND
+    searchNode = currentNode;
     for (int j=0; j<searchLevels; j++) {
       searchNode = searchNode->nodes_[IND[j]];
     }
@@ -139,11 +140,25 @@ void Node::evaluatePossibilities(int newChoice) {
 	IND[i] = 0;
 	IND[i-1]++;
       }
-      else if ((IND[i] == K_) && (i != 0)) {
+      else if ((IND[i] == K_) && (i == 0)) {
 	break;
       }
     }
-
   }
-    
+  // Print scores to file
+  int selection = 0;
+  int scoreSelect = score[0];
+  for (int i=0; i<K_; i++) {
+    printf("CHOICE %d = %d, COST = %d\n",i+1,currentNode->nodes_[i]->N_,score[i]);
+    if (score[i] < scoreSelect) {
+      scoreSelect = score[i];
+      selection = i;
+    }
+  }
+  // Update history
+  history_.push_back(selection);
+  currentLevel_++;
+  printf("COMPUTER CHOICE: ADD %d, TOTAL = %d\n\n",selection+1,currentNode->nodes_[selection]->N_);
+  
+  return currentNode->nodes_[selection]->N_;
 }
