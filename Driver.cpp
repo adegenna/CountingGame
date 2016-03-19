@@ -12,6 +12,13 @@ using namespace std;
 // Driver program to test Bucket class
 
 int main(int argc, const char *argv[]) {
+  // Explain rules
+  printf("######################\nCOUNTING GAME\n######################\n\n");
+  printf("EXPLANATION: THERE ARE TWO PLAYERS (USER + COMPUTER).\n");
+  printf("YOU SELECT A TOTAL SUM (N) AND A NUMBER OF CHOICES (K).\n");
+  printf("WHOEVER STARTS FIRST BEGINS BY SELECTING A NUMBER BETWEEN 1 AND K.\n");
+  printf("THE NEXT PLAYER DOES THE SAME, AND SO ON UNTIL THE TOTAL SUM N IS REACHED.\n");
+  printf("WHOEVER REACHES THE TOTAL SUM N LOSES.\n\n");
   char* line;
   printf("ENTER DESIRED SUM OF GAME: ");
   line = readline("> ");
@@ -27,7 +34,7 @@ int main(int argc, const char *argv[]) {
   if (firstPlayer == 1)
     printf("YOU GO FIRST. THERE ARE %d CHOICES. FIRST PLAYER TO %d LOSES\n\n",choices,gameSum);
   else
-    printf("COMPUTER GOES FIRST. THERE ARE  %d CHOICES. FIRST PLAYER TO %d LOSES\n\n",choices,gameSum);
+    printf("COMPUTER GOES FIRST. THERE ARE %d CHOICES. FIRST PLAYER TO %d LOSES\n\n",choices,gameSum);
   free(line);
   // Initialize first node
   Node tree = Node(0,choices,gameSum,0);
@@ -38,8 +45,9 @@ int main(int argc, const char *argv[]) {
   int iter = 0;
   int userChoice;
   if (firstPlayer != 1) {
+    printf("ITERATION = %d\n",iter+1);
     sum = tree.evaluatePossibilities(-1);
-    printf("COMPUTER CHOOSES %d\n\n",sum);
+    iter++;
   }
   while (sum < gameSum) {
     char* line = readline("> ");
