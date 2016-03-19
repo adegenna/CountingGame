@@ -57,12 +57,12 @@ void Node::calcTree() {
   int numNext = 0;
   int sizeCurrent = 1;
   // Print to file
-  FILE* fout = fopen("Tree.out","w");
-  fprintf(fout,"TREE CALCULATION: LEAVES = %d, LEVELS = %d\n\n\n",K_,level_);  
+  //FILE* fout = fopen("Tree.out","w");
+  //fprintf(fout,"TREE CALCULATION: LEAVES = %d, LEVELS = %d\n\n\n",K_,level_);  
   // Recursive tree creation
   while (sizeCurrent != 0) {
     for (int i=0; i<sizeCurrent; i++) {
-      fprintf(fout,"LEVEL = %d\tVALUE = %d\n",current[i]->level_,current[i]->N_);
+      //fprintf(fout,"LEVEL = %d\tVALUE = %d\n",current[i]->level_,current[i]->N_);
       for (int j=0; j<K_; j++) {
 	// Look at K_ child nodes of current node
 	child = current[i]->nodes_[j];
@@ -81,7 +81,7 @@ void Node::calcTree() {
     sizeCurrent = numNext;
     numNext = 0;
   }
-  fclose(fout);
+  //fclose(fout);
 }
 
 int Node::evaluatePossibilities(int newChoice) {
@@ -105,7 +105,7 @@ int Node::evaluatePossibilities(int newChoice) {
       break;
     }
   }
-  printf("User choice = %d\n",currentNode->nodes_[newChoiceInd]->N_);
+  printf("USER CHOICE = %d\n",currentNode->nodes_[newChoiceInd]->N_);
   if (currentNode->nodes_[newChoiceInd]->N_ == sum_) {
     printf("COMPUTER WINS\n\n");
     return sum_;
@@ -118,10 +118,12 @@ int Node::evaluatePossibilities(int newChoice) {
   Node* searchNode;
   int indSize;
   int score[K_];
+  int count[K_];
   bool flag;
   // Initialize score
   for (int i=0; i<K_; i++) {
     score[i] = 0;
+    count[i] = 0;
   }
   int Choice = 0;
   int sizeDecrement = 0;
@@ -131,6 +133,7 @@ int Node::evaluatePossibilities(int newChoice) {
     flag = false;
     if (searchNode) {
       while (flag==false) {
+	count[Choice]++;
 	// If IND is not empty, go to node specified by it
 	if (!IND.empty()) {
 	  for (int i=0; i<IND.size(); i++) {
@@ -142,10 +145,10 @@ int Node::evaluatePossibilities(int newChoice) {
 	  searchNode = searchNode->nodes_[0];
 	  IND.push_back(0);
 	}
-	printf("size(IND) = %d \t",IND.size());
-	for (int i=0; i<IND.size(); i++)
-	  printf("%d ",IND[i]);
-	printf("\n");
+	//printf("size(IND) = %d \t",IND.size());
+	//for (int i=0; i<IND.size(); i++)
+	//  printf("%d ",IND[i]);
+	//printf("\n");
 	// Evaluate cost: +1 if sum_ is reached at user's turn, -1 otherwise
 	if (searchNode->level_ % 2 == 0)
 	  score[Choice] += 1;
@@ -161,14 +164,20 @@ int Node::evaluatePossibilities(int newChoice) {
 	  if (indSize > 1) {
 	    sizeDecrement = 0;
 	    for (int i=indSize-1; i>-1; i--) {
-	      if (IND[i] == K_) {
+	      if ((IND[i] == K_) && (i != 0)) {
 		IND[i] = 0;
 		IND[i-1]++;
 		sizeDecrement++;
 	      }
+	      else if ((IND[i] == K_) && (i == 0)) {
+		IND.clear();
+		flag = true;
+	      }
 	    }
-	    indSize -= sizeDecrement;
-	    IND.resize(indSize);
+	    if (flag == false) {
+	      indSize -= sizeDecrement;
+	      IND.resize(indSize);
+	    }
 	  }
 	  searchNode = currentNode->nodes_[Choice];
 	}
@@ -179,14 +188,16 @@ int Node::evaluatePossibilities(int newChoice) {
 	    flag = true;
 	}
 	// Check to see if we are done evaluating nodes_[Choice]
-	if (IND[0] == K_) {
-	  IND.clear();
-	  flag = true;
+	if (IND.size() != 0) {
+	  if (IND[0] == K_) {
+	    IND.clear();
+	    flag = true;
+	  }
 	}
       }
     }
     Choice++;
-    printf("CHOICE = %d\n",Choice);
+    //printf("CHOICE = %d\n",Choice);
   }
 
 
@@ -196,8 +207,9 @@ int Node::evaluatePossibilities(int newChoice) {
   int selection = 0;
   int scoreSelect = score[0];
   for (int i=0; i<K_; i++) {
-    printf("CHOICE %d = %d, COST = %d\n",i+1,currentNode->nodes_[i]->N_,score[i]);
-    if (score[i] < scoreSelect) {
+    //if (count[i] != 0)
+    //  printf("CHOICE %d = %d, COST = %d\n",i+1,currentNode->nodes_[i]->N_,score[i]);
+    if ((score[i] < scoreSelect) && (count[i] != 0)) {
       scoreSelect = score[i];
       selection = i;
     }
@@ -206,6 +218,8 @@ int Node::evaluatePossibilities(int newChoice) {
   history_.push_back(selection);
   currentLevel_++;
   printf("COMPUTER CHOICE: ADD %d, TOTAL = %d\n\n",selection+1,currentNode->nodes_[selection]->N_);
+  if (currentNode->nodes_[selection]->N_ == sum_)
+    printf("USER WINS.\n\n");
   
   return currentNode->nodes_[selection]->N_;
 }

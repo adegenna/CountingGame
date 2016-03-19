@@ -36,7 +36,12 @@ int main(int argc, const char *argv[]) {
     if (!line) break;
     if (*line) add_history(line);
     userChoice = atoi(line);
-    printf("Iteration = %d\n",iter+1);
+    while ((userChoice > choices) || (sum + userChoice > gameSum) || (userChoice < 1)) {
+      printf("INVALID CHOICE. ");
+      line = readline(" >");
+      userChoice = atoi(line);
+    }
+    printf("ITERATION = %d\n",iter+1);
     sum = tree.evaluatePossibilities(sum+userChoice);
     free(line);
     iter++;
