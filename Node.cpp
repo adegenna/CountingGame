@@ -106,6 +106,10 @@ int Node::evaluatePossibilities(int newChoice) {
     }
   }
   printf("User choice = %d\n",currentNode->nodes_[newChoiceInd]->N_);
+  if (currentNode->nodes_[newChoiceInd]->N_ == sum_) {
+    printf("COMPUTER WINS\n\n");
+    return sum_;
+  }
   history_.push_back(newChoiceInd);
   currentNode = currentNode->nodes_[newChoiceInd];
   currentLevel_ += 1;
@@ -120,6 +124,7 @@ int Node::evaluatePossibilities(int newChoice) {
     score[i] = 0;
   }
   int Choice = 0;
+  int sizeDecrement = 0;
   while (Choice < K_) {
     // Go to node specified by Choice
     searchNode = currentNode->nodes_[Choice];
@@ -128,10 +133,6 @@ int Node::evaluatePossibilities(int newChoice) {
       while (flag==false) {
 	// If IND is not empty, go to node specified by it
 	if (!IND.empty()) {
-	  printf("size(IND) = %d \t",IND.size());
-	  for (int i=0; i<IND.size(); i++)
-	    printf("%d ",IND[i]);
-	  printf("\n");
 	  for (int i=0; i<IND.size(); i++) {
 	    searchNode = searchNode->nodes_[IND[i]];
 	  }
@@ -141,27 +142,51 @@ int Node::evaluatePossibilities(int newChoice) {
 	  searchNode = searchNode->nodes_[0];
 	  IND.push_back(0);
 	}
+	printf("size(IND) = %d \t",IND.size());
+	for (int i=0; i<IND.size(); i++)
+	  printf("%d ",IND[i]);
+	printf("\n");
 	// Evaluate cost: +1 if sum_ is reached at user's turn, -1 otherwise
 	if (searchNode->level_ % 2 == 0)
 	  score[Choice] += 1;
 	else
 	  score[Choice] += -1;
-	// Reset IND
 	indSize = IND.size();
-	if (indSize > 1) { 
+	if (indSize > 1) {
+	  // Increment IND
 	  IND[indSize-2] += 1;
 	  IND.resize(indSize-1);
+	  indSize = indSize-1;
+	  // Recursively check to see if we've passed K_ leaves on any sub branch
+	  if (indSize > 1) {
+	    sizeDecrement = 0;
+	    for (int i=indSize-1; i>-1; i--) {
+	      if (IND[i] == K_) {
+		IND[i] = 0;
+		IND[i-1]++;
+		sizeDecrement++;
+	      }
+	    }
+	    indSize -= sizeDecrement;
+	    IND.resize(indSize);
+	  }
 	  searchNode = currentNode->nodes_[Choice];
 	}
 	else {
-	  flag = true;
+	  // Check searchNode to see if we are done 
+	  if (searchNode->N_ == sum_)
+	    IND.clear();
+	    flag = true;
 	}
 	// Check to see if we are done evaluating nodes_[Choice]
-	if (IND[0] == K_)
+	if (IND[0] == K_) {
+	  IND.clear();
 	  flag = true;
+	}
       }
     }
     Choice++;
+    printf("CHOICE = %d\n",Choice);
   }
 
 
