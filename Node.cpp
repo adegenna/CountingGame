@@ -17,6 +17,7 @@ Node::Node(int N, int K, int sum, int level) {
   for (int i=0; i<K_; i++)
     nodes_[i] = NULL;
   currentLevel_ = 0;
+  firstPlayer_ = -1;
 }
 
 Node::~Node() {
@@ -96,23 +97,33 @@ int Node::evaluatePossibilities(int newChoice) {
       currentNode = currentNode->nodes_[history_[i]];
     }
   }
-  // Find which of three children of currentNode represents user's
-  // choice, append to history, and go to that node
-  int newChoiceInd;
-  for (int i=0; i<K_; i++) {
-    if (currentNode->nodes_[i]->N_ == newChoice) {
-      newChoiceInd = i;
-      break;
+  if (newChoice != -1) {
+    // User goes first
+    // Find which of three children of currentNode represents user's
+    // choice, append to history, and go to that node
+    if (firstPlayer_ == -1)
+      firstPlayer_ = 1;
+    int newChoiceInd;
+    for (int i=0; i<K_; i++) {
+      if (currentNode->nodes_[i]->N_ == newChoice) {
+	newChoiceInd = i;
+	break;
+      }
     }
+    printf("USER CHOICE = %d\n",currentNode->nodes_[newChoiceInd]->N_);
+    if (currentNode->nodes_[newChoiceInd]->N_ == sum_) {
+      printf("COMPUTER WINS\n\n");
+      return sum_;
+    }
+    history_.push_back(newChoiceInd);
+    currentNode = currentNode->nodes_[newChoiceInd];
+    currentLevel_ += 1;
   }
-  printf("USER CHOICE = %d\n",currentNode->nodes_[newChoiceInd]->N_);
-  if (currentNode->nodes_[newChoiceInd]->N_ == sum_) {
-    printf("COMPUTER WINS\n\n");
-    return sum_;
+  else {
+    // Computer goes first
+    if (firstPlayer_ == -1)
+      firstPlayer_ = 2;
   }
-  history_.push_back(newChoiceInd);
-  currentNode = currentNode->nodes_[newChoiceInd];
-  currentLevel_ += 1;
   // Evaluate subtree of possible choices and find optimal choice
   vector<int> IND;
   Node* searchNode;
@@ -150,10 +161,18 @@ int Node::evaluatePossibilities(int newChoice) {
 	//  printf("%d ",IND[i]);
 	//printf("\n");
 	// Evaluate cost: +1 if sum_ is reached at user's turn, -1 otherwise
-	if (searchNode->level_ % 2 == 0)
-	  score[Choice] += 1;
-	else
-	  score[Choice] += -1;
+	if (searchNode->level_ % 2 == 0) {
+	  if (firstPlayer_ == 1)
+	    score[Choice] += 1;
+	  else
+	    score[Choice] += -1;
+	}
+	else {
+	  if (firstPlayer_ == 1)
+	    score[Choice] += -1;
+	  else
+	    score[Choice] += 1;
+	}
 	indSize = IND.size();
 	if (indSize > 1) {
 	  // Increment IND

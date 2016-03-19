@@ -21,7 +21,13 @@ int main(int argc, const char *argv[]) {
   line = readline("> ");
   int choices = atoi(line);
   printf("\n");
-  printf("YOU GO FIRST. YOU HAVE %d CHOICES. FIRST PLAYER TO %d LOSES\n\n",choices,gameSum);
+  printf("ENTER WHO GOES FIRST (USER = 1, COMPUTER = 2): ");
+  line = readline("> ");
+  int firstPlayer = atoi(line);
+  if (firstPlayer == 1)
+    printf("YOU GO FIRST. THERE ARE %d CHOICES. FIRST PLAYER TO %d LOSES\n\n",choices,gameSum);
+  else
+    printf("COMPUTER GOES FIRST. THERE ARE  %d CHOICES. FIRST PLAYER TO %d LOSES\n\n",choices,gameSum);
   free(line);
   // Initialize first node
   Node tree = Node(0,choices,gameSum,0);
@@ -31,6 +37,10 @@ int main(int argc, const char *argv[]) {
   int sum = 0;
   int iter = 0;
   int userChoice;
+  if (firstPlayer != 1) {
+    sum = tree.evaluatePossibilities(-1);
+    printf("COMPUTER CHOOSES %d\n\n",sum);
+  }
   while (sum < gameSum) {
     char* line = readline("> ");
     if (!line) break;
@@ -46,5 +56,6 @@ int main(int argc, const char *argv[]) {
     free(line);
     iter++;
   }
-  
+
+  return 0;
 }

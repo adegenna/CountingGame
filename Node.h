@@ -22,6 +22,7 @@ class Node {
   std::vector<int> history_;  // History of choices made
   int currentLevel_;          // Current level
   int totalLevels_;           // Total levels of entire tree
+  int firstPlayer_;           // User = 1, Computer = 2
 };
 
 
