@@ -11,7 +11,7 @@ class Node {
   void setNodes();
   int getNPts();
   int getLevel();
-  void calcTree(int depth);
+  void calcTree();
   int evaluatePossibilities(int newChoice);
 
   // These should really be private...

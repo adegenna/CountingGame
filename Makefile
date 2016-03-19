@@ -6,7 +6,7 @@ MPIFLAGS = -O2
 
 all: driver
 
-driver : Driver.o Node.o
+driver : Driver.o Node.o -lreadline
 	$(CXX) $^ -o $@
 
 clean:

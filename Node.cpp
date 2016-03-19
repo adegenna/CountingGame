@@ -31,19 +31,21 @@ void Node::setNodes() {
   int val;
   for (int i=0; i<K_; i++) {
     val = N_ + (i+1);
-    nodes_[i] = new Node(val,K_,sum_,level_+1);
+    if (val <= sum_)
+      nodes_[i] = new Node(val,K_,sum_,level_+1);
+    else
+      nodes_[i] = NULL;
   }
 
 }
 
-void Node::calcTree(int depth) {
+void Node::calcTree() {
   // Function to calculate entire decision tree
 
   // Set mother node (node 0)
   setNodes();
   // Tree initialization
-  depth = 2*depth;
-  totalLevels_ = depth;
+  totalLevels_ = 10;
   int N,level;
   int K = K_;
   int sum = sum_;
@@ -55,33 +57,31 @@ void Node::calcTree(int depth) {
   int numNext = 0;
   int sizeCurrent = 1;
   // Print to file
-  //FILE* fout = fopen("Tree.out","w");
-  //fprintf(fout,"TREE CALCULATION: LEAVES = %d, LEVELS = %d\n\n\n",K_,level_);
-  //for (int i=0; i<K_; i++)
-  //  fprintf(fout,"LEVEL = %d\tVALUE = %d\n",nodes_[i]->level_,nodes_[i]->N_);
-  //fprintf(fout,"\n");
+  FILE* fout = fopen("Tree.out","w");
+  fprintf(fout,"TREE CALCULATION: LEAVES = %d, LEVELS = %d\n\n\n",K_,level_);  
   // Recursive tree creation
-  for (int k=0; k<depth-1; k++) {
+  while (sizeCurrent != 0) {
     for (int i=0; i<sizeCurrent; i++) {
-      // Set child nodes for current nodes at current level
+      fprintf(fout,"LEVEL = %d\tVALUE = %d\n",current[i]->level_,current[i]->N_);
       for (int j=0; j<K_; j++) {
+	// Look at K_ child nodes of current node
 	child = current[i]->nodes_[j];
-	child->setNodes();
-	//for (int jj=0; jj<K_; jj++)
-	  //fprintf(fout,"LEVEL = %d\tVALUE = %d\n",child->nodes_[jj]->level_,child->nodes_[jj]->N_);
-        // Track next level of nodes
-	next.push_back(child);
-	numNext++;
+	if (child) {
+	  // If node exists (i.e. is not null), set child nodes
+	  child->setNodes();
+	  next.push_back(child);
+	  numNext++;
+	}
+
       }
     }
-    //fprintf(fout,"\n");
     // Reset current nodes for next level iteration
     current.swap(next);
     next.clear();
     sizeCurrent = numNext;
     numNext = 0;
   }
-  //fclose(fout);
+  fclose(fout);
 }
 
 int Node::evaluatePossibilities(int newChoice) {
@@ -110,41 +110,63 @@ int Node::evaluatePossibilities(int newChoice) {
   currentNode = currentNode->nodes_[newChoiceInd];
   currentLevel_ += 1;
   // Evaluate subtree of possible choices and find optimal choice
-  int searchLevels = totalLevels_-currentLevel_;
-  int IND[searchLevels];
+  vector<int> IND;
   Node* searchNode;
-  for (int i=0; i<searchLevels; i++) {
-    IND[i] = 0;
-  }
-  int id = searchLevels-1;
-  int val;
+  int indSize;
   int score[K_];
   bool flag;
   // Initialize score
   for (int i=0; i<K_; i++) {
     score[i] = 0;
   }
-  while (IND[0] < K_) {
-    // Go to node specified by IND
-    searchNode = currentNode;
-    for (int j=0; j<searchLevels; j++) {
-      searchNode = searchNode->nodes_[IND[j]];
-    }
-    // Evaluate score of searchNode
-    val = searchNode->N_;
-    score[IND[0]] += abs(sum_-val);
-    // Update IND
-    IND[id]++;
-    for (int i=searchLevels-1; i>-1; i--) {
-      if ((IND[i] == K_) && (i != 0)) {
-	IND[i] = 0;
-	IND[i-1]++;
+  int Choice = 0;
+  while (Choice < K_) {
+    // Go to node specified by Choice
+    searchNode = currentNode->nodes_[Choice];
+    flag = false;
+    if (searchNode) {
+      while (flag==false) {
+	// If IND is not empty, go to node specified by it
+	if (!IND.empty()) {
+	  printf("size(IND) = %d \t",IND.size());
+	  for (int i=0; i<IND.size(); i++)
+	    printf("%d ",IND[i]);
+	  printf("\n");
+	  for (int i=0; i<IND.size(); i++) {
+	    searchNode = searchNode->nodes_[IND[i]];
+	  }
+	}
+	// Search down leftmost unsearched branch until sum_ is reached
+	while (searchNode->N_ != sum_) {
+	  searchNode = searchNode->nodes_[0];
+	  IND.push_back(0);
+	}
+	// Evaluate cost: +1 if sum_ is reached at user's turn, -1 otherwise
+	if (searchNode->level_ % 2 == 0)
+	  score[Choice] += 1;
+	else
+	  score[Choice] += -1;
+	// Reset IND
+	indSize = IND.size();
+	if (indSize > 1) { 
+	  IND[indSize-2] += 1;
+	  IND.resize(indSize-1);
+	  searchNode = currentNode->nodes_[Choice];
+	}
+	else {
+	  flag = true;
+	}
+	// Check to see if we are done evaluating nodes_[Choice]
+	if (IND[0] == K_)
+	  flag = true;
       }
-      else if ((IND[i] == K_) && (i == 0)) {
-	break;
-      }
     }
+    Choice++;
   }
+
+
+
+
   // Print scores to file
   int selection = 0;
   int scoreSelect = score[0];
